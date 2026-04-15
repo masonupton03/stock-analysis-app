@@ -33,10 +33,18 @@ if (end_date - start_date).days < 365:
     st.stop()
 
 @st.cache_data
-def load_data(tickers,start,end):
+def load_data(tickers, start, end):
     try:
         all_tickers = tickers + ["^GSPC"]
-        data = yf.download(all_tickers,start=start, end=end,auto_adjust=True)["Close"]
+        data = yf.download(all_tickers, start=start, end=end, auto_adjust=True, progress=False)["Close"]
+        
+        # If only one ticker came back, it returns a Series — convert to DataFrame
+        if isinstance(data, pd.Series):
+            data = data.to_frame()
+        
+        # Make sure all expected tickers are columns
+        data.columns = [str(c) for c in data.columns]
+        
         return data
     except Exception as e:
         return None
